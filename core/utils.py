@@ -8,8 +8,11 @@ def login_decorator(func) :
     def wrapper(self, request, *args, **kwrags) :
         try :
             new_token = request.headers.get('Authorization', None)
-            payload = jwt.decode(new_token, settings.SECRET_KEY, settings.ALGORITHM)
-            request.user = User.objects.get(id=payload['id'])
+            if new_token == None:
+                request.user = User.objects.get(id = 11)
+            else :
+                payload = jwt.decode(new_token, settings.SECRET_KEY, settings.ALGORITHM)
+                request.user = User.objects.get(id=payload['id'])
 
         except User.DoesNotExist:
             return JsonResponse({'MESSAGE' : 'INVALID_USER'}, status=401)

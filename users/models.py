@@ -17,7 +17,7 @@ class User(models.Model):
         db_table = 'users'
 
 class Creator(models.Model):
-    user          = models.ForeignKey('users.User', on_delete=models.SET_NULL, unique=True)
+    user          = models.ForeignKey('users.User', unique=True, on_delete=models.CASCADE)
     nickname      = models.CharField(max_length=30)
     email         = models.CharField(max_length=200)
     phone_number  = models.CharField(max_length=50, null=True)
@@ -30,7 +30,8 @@ class Creator(models.Model):
 
 class MyClass(models.Model):
     user    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    product = models.ForeignKey('products.Product', on_delete=models.SET_NULL, null=True)
+    product = models.ForeignKey('products.Product', on_delete=models.SET_NULL, 
+                                null=True, related_name='product_myclass')
 
     class Meta:
         db_table = 'myclasses'
@@ -38,7 +39,7 @@ class MyClass(models.Model):
 class Like(models.Model):
     user    = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     product = models.ForeignKey('products.Product', on_delete=models.SET_NULL, 
-                                 null=True, related_name='product_like')
+                                null=True, related_name='product_like')
 
     class Meta:
         db_table = 'likes'
