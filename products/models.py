@@ -16,7 +16,8 @@ class SubCategory(models.Model):
 
 class Product(models.Model):
     name            = models.CharField(max_length=50)
-    creator         = models.ForeignKey('users.Creator', on_delete=models.SET_NULL, null=True, related_name='creator')
+    creator         = models.ForeignKey('users.Creator', on_delete=models.SET_NULL, 
+                                         null=True, related_name='creator')
     subcategory     = models.ForeignKey(SubCategory, on_delete=models.SET_NULL, null=True)
     price           = models.DecimalField(max_digits=10, decimal_places=2)
     description     = models.CharField(max_length=1000)
