@@ -39,6 +39,6 @@ class KakaoLoginView(View):
         new_token = jwt.encode({'id':user.id}, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
         if created:
-            return JsonResponse({"message" : "NEW_USER", "new_token" : new_token}, status = 201)
+            return JsonResponse({"message" : "NEW_USER", "new_token" : new_token, "name" : user.name, 'img' : user.profile_image}, status = 201)
         
-        return JsonResponse({"message" : "REGISTERED_USER", "new_token" : new_token}, status = 200)
+        return JsonResponse({"message" : "REGISTERED_USER", "new_token" : new_token, "name" : user.name, 'img' : user.profile_image}, status = 200)
