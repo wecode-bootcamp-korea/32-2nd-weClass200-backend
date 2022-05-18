@@ -1,10 +1,12 @@
-import jwt, requests
+import jwt, requests, json
 
 from django.views     import View
 from django.http      import JsonResponse
 from django.conf      import settings
 
-from users.models     import User
+from core.utils       import login_decorator
+
+from users.models     import User, Creator
         
 def get_kakao_user_information(access_token):
     header = {
@@ -42,3 +44,36 @@ class KakaoLoginView(View):
             return JsonResponse({"message" : "NEW_USER", "new_token" : new_token, "name" : user.name, 'img' : user.profile_image}, status = 201)
         
         return JsonResponse({"message" : "REGISTERED_USER", "new_token" : new_token, "name" : user.name, 'img' : user.profile_image}, status = 200)
+
+class CreatorView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+
+            user_id      = request.user.id
+
+            nickname     = data['nickname']
+            email        = data['email']
+            phone_number = data['phone_number']
+            introduction = data['introduction']
+            carrer       = data['carrer']
+            
+            Creator.objects.update_or_create(
+                user_id  = user_id,
+                defaults = {
+                    nickname     : nickname,
+                    email        : email,
+                    phone_number : phone_number,
+                    introduction : introduction,
+                    carrer       : carrer
+                }
+            )
+
+            return JsonResponse({'message' : "SUCCESS"}, status = 201)
+        
+        except KeyError:
+            return JsonResponse({'message' : "KEY_ERROR"}, status = 401)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"message": "DECODE_ERROR"}, status=400)
