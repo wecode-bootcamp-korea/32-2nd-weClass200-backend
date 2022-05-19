@@ -1,15 +1,17 @@
+import json
+
 from django.db.models import Q, Count
 from django.http      import JsonResponse
 from django.views     import View
+from django.db        import transaction
 
 from core.utils       import login_decorator
-from products.models  import MainCategory, Product
-from users.models     import Like, MyClass, ReviewImage
+from products.models  import MainCategory, SubCategory, Product, ProductImage
+from users.models     import Like, MyClass, ReviewImage, Creator
 
 class MainCategoriesView(View):
     def get(self, request):
         main_categories = MainCategory.objects.prefetch_related("subcategory_set")
-        
         results = []
 
         for main_category in main_categories:
@@ -31,8 +33,8 @@ class PublicProductsView(View):
         type_name = request.GET.getlist("type_name")
         search    = request.GET.get("search")
         ordering  = request.GET.get("ordering", "id")
-        offset    = request.GET.get("offset", 0)
-        limit     = request.GET.get("limit",  8)
+        offset    = int(request.GET.get("offset", 0))
+        limit     = int(request.GET.get("limit",  8))
         results   = []
         order_by_option = {
                 "id"     : "id",
@@ -56,7 +58,7 @@ class PublicProductsView(View):
             .annotate(like_amount=Count('product_like__id')) \
             .annotate(review_amount=Count('product_review__id')) \
             .prefetch_related("images") \
-            .order_by(order_by_option[ordering])[offset : offset + limit]
+            .order_by(order_by_option[ordering])[offset:offset+limit]
 
         for product in products:
             results.append({
@@ -81,8 +83,8 @@ class PrivateProductsView(View):
         type_name   = request.GET.getlist("type_name")
         search      = request.GET.get("search")
         ordering    = request.GET.get("ordering", "id")
-        offset      = request.GET.get("offset", 0)
-        limit       = request.GET.get("limit",  8)
+        offset    = int(request.GET.get("offset", 0))
+        limit     = int(request.GET.get("limit",  8))
         results     = []
         is_liked    = False
         is_learning = False
@@ -235,5 +237,44 @@ class PrivateProductView(View):
             })
         return JsonResponse({'product' : result}, status = 200)
 
+class CreateProductView(View):
+    @login_decorator
 
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            name             = data['name']
+            price            = data['price']
+            description      = data['description']
+            period           = data['period']
+            review_score     = 0
+            subcategory_name = data['subcategory_name']
+            subcategory_id   = SubCategory.objects.get(name = subcategory_name).id
+            image            = data['image']
+            user_id          = request.user.id
+            creator          = Creator.objects.filter(user_id = user_id).first()
+
+            with transaction.atomic():
+                Product.objects.create(
+                    name           = name,
+                    creator_id     = creator.id,
+                    price          = price,
+                    description    = description,
+                    period         = period,
+                    review_score   = review_score,
+                    subcategory_id = subcategory_id             
+                )
+                
+                product = Product.objects.filter(name = name)[0]
+                ProductImage.objects.create(
+                    product_id = product.id,
+                    image_urls = image
+                )
+            return JsonResponse({'message' : "SUCCESS"}, status = 201)
+
+        except KeyError:
+            return JsonResponse({'message' : "KEY_ERROR"}, status = 401)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"message": "DECODE_ERROR"}, status=400)
 

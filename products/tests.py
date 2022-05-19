@@ -4,7 +4,7 @@ from products.models import MainCategory, SubCategory, Product, Status
 from users.models    import Creator, User
 
 
-class NavTest(TestCase):
+class MainCategoryTest(TestCase):
     def setUp(self):
         MainCategory.objects.create(
             id = 1,
@@ -31,24 +31,21 @@ class NavTest(TestCase):
     def test_nav_loading_success(self):
         client = Client()
         response = client.get('/products/nav')
-        main_category = []
-        mcs = MainCategory.objects.filter(id = 1)
+        main_categories = MainCategory.objects.prefetch_related("subcategory_set")
+        results = []
 
-        for mc in mcs:
-            sub_category = []
-            sbs = SubCategory.objects.filter(maincategory_id = mc.id)
-            for sb in sbs:
-                print(sb)
-                print(sbs)
-                sub_category.append({
-                    "id" : sb.id,
-                    "subTitle" : sb.name
-                })
-            main_category.append({
-                "id" : mc.id,
-                "category" : mc.name,
-                "subCategory" : sub_category
+        for main_category in main_categories:
+            sub_categories = [{
+                "id" : sub_category.id,
+                "subTitle" : sub_category.name
+            } for sub_category in main_category.subcategory_set.all()]
+
+            results.append({
+                "id"          : main_category.id,
+                "category"    : main_category.name,
+                "subCategory" : sub_categories
             })
 
+        print(response)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"result" : main_category})
+        self.assertEqual(response.json(), {"results" : results})

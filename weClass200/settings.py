@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 from my_settings    import DATABASES, SECRET_KEY, ALGORITHM
 
-import pymysql
+import pymysql, os
     
 pymysql.install_as_MySQLdb()
 
@@ -156,20 +156,5 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',    		
 )
 
-# LOGGING = {
-#     'disable_existing_loggers': False,
-#     'version': 1,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#             'level': 'DEBUG',
-#         },
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'handlers': ['console'],
-#             'level': 'DEBUG',
-#             'propagate': False,
-#         },
-#     },
-# }
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

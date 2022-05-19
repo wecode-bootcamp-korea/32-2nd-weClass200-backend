@@ -6,7 +6,7 @@ from django.views     import View
 from django.http      import JsonResponse, HttpResponse
 from django.conf      import settings
 from django.db        import transaction
-from django.db.models import Q, Count
+from django.db.models import Count
 
 from users.models    import Review, ReviewImage, User, Like, MyClass, Creator
 from products.models import Product
@@ -28,14 +28,15 @@ class LikeView(View):
 
 class ReviewView(View):
     @login_decorator
-    def post(self, request):
+    def post(self, request):    
         data       = json.loads(request.body)
         user_id    = request.user.id
         score      = data['rating']
         product_id = data['product_id']
         detail     = data['content']
         image_url  = data['image_url']
-
+        
+        # if MyClass.objects.filter(product_id = product_id, user_id = user_id).exists():
         Review.objects.filter(product_id = product_id, user_id = user_id).update_or_create(
             user_id    = user_id,
             product_id = product_id,
@@ -50,6 +51,7 @@ class ReviewView(View):
             image_urls = image_url
         )
         return JsonResponse({'message' : 'created'}, status = 201)
+        # return JsonResponse({'message' : '구매하지 않은 강의입니다'}, status = 400)
 
     @login_decorator
     def delete(self, request):
@@ -69,6 +71,9 @@ class MyClassView(View):
         user_id    = request.user.id
         data       = json.loads(request.body)
         product_id = data['product_id']
+        
+        if MyClass.objects.filter(product_id = product_id, user_id = user_id).exists():
+            return JsonResponse({'message' : '이미 구매한 강의입니다'}, status = 400)
 
         with transaction.atomic():
             MyClass.objects.create(
@@ -151,27 +156,24 @@ class CreatorView(View):
     @login_decorator
     def post(self, request):
         try:
+            
             data = json.loads(request.body)
-
             user_id      = request.user.id
-
             nickname     = data['nickname']
             email        = data['email']
             phone_number = data['phone_number']
             introduction = data['introduction']
             carrer       = data['carrer']
-            
-            Creator.objects.update_or_create(
-                user_id  = user_id,
-                defaults = {
-                    nickname     : nickname,
-                    email        : email,
-                    phone_number : phone_number,
-                    introduction : introduction,
-                    carrer       : carrer
-                }
-            )
 
+            with transaction.atomic():
+                Creator.objects.update_or_create(
+                    user_id      = user_id,
+                    nickname     = nickname,
+                    email        = email,
+                    phone_number = phone_number,
+                    introduction = introduction,
+                    carrer       = carrer
+                )
             return JsonResponse({'message' : "SUCCESS"}, status = 201)
         
         except KeyError:
