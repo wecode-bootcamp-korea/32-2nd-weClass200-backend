@@ -1,9 +1,11 @@
+import json
+
 from django.db.models import Q, Count
 from django.http      import JsonResponse
 from django.views     import View
 
 from core.utils       import login_decorator
-from products.models  import MainCategory, Product
+from products.models  import MainCategory, Product, SubCategory, ProductImage
 from users.models     import Like, MyClass, ReviewImage
 
 class MainCategoriesView(View):
@@ -235,5 +237,41 @@ class PrivateProductView(View):
             })
         return JsonResponse({'product' : result}, status = 200)
 
+class CreateProductView(View):
+    @login_decorator
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
 
+            name             = data['name']
+            price            = data['price']
+            description      =  data['description']
+            period           = data['period']
+            review_score     = 0
+            subcategory_name = data['subcategory_name']
+            subcategory_id   = SubCategory.objects.get(name = subcategory_name).id
+            image            = data['image']
+            
+
+            Product.objects.create(
+                name           = name,
+                price          = price,
+                description    = description,
+                period         = period,
+                review_score   = review_score,
+                subcategory_id = subcategory_id             
+            )
+
+            ProductImage.objects.create(
+                product    = Product.objects.last(),
+                image_urls = image
+            )
+
+            return JsonResponse({'message' : "SUCCESS"}, status = 201)
+        
+        except KeyError:
+            return JsonResponse({'message' : "KEY_ERROR"}, status = 401)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"message": "DECODE_ERROR"}, status=400)
 
