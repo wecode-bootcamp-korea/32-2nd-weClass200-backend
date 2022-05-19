@@ -14,6 +14,12 @@ class SubCategory(models.Model):
     class Meta:
         db_table = 'sub_categories'
 
+class Status(models.Model):
+    name    = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = 'statuses'
+
 class Product(models.Model):
     name            = models.CharField(max_length=50)
     creator         = models.ForeignKey('users.Creator', on_delete=models.SET_NULL, 
@@ -27,7 +33,8 @@ class Product(models.Model):
     updated_at      = models.DateTimeField(auto_now=True)
     discount_rate   = models.IntegerField(null=True)
     discount_coupon = models.IntegerField(null=True)
-
+    type            = models.ForeignKey(Status, on_delete=models.SET_NULL,
+                                        null=True, related_name='products')
     class Meta:
         db_table = 'products'
 
