@@ -9,6 +9,8 @@ from core.utils       import login_decorator
 from products.models  import MainCategory, SubCategory, Product, ProductImage
 from users.models     import Like, MyClass, ReviewImage, Creator
 
+
+
 class MainCategoriesView(View):
     def get(self, request):
         main_categories = MainCategory.objects.prefetch_related("subcategory_set")
@@ -239,13 +241,13 @@ class PrivateProductView(View):
 
 class CreateProductView(View):
     @login_decorator
-
     def post(self, request):
         try:
             data = json.loads(request.body)
             name             = data['name']
             price            = data['price']
             description      = data['description']
+
             period           = data['period']
             review_score     = 0
             subcategory_name = data['subcategory_name']
@@ -271,6 +273,7 @@ class CreateProductView(View):
                     image_urls = image
                 )
             return JsonResponse({'message' : "SUCCESS"}, status = 201)
+
 
         except KeyError:
             return JsonResponse({'message' : "KEY_ERROR"}, status = 401)

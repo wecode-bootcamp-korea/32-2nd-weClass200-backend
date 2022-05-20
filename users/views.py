@@ -159,11 +159,24 @@ class CreatorView(View):
             
             data = json.loads(request.body)
             user_id      = request.user.id
-            nickname     = data['nickname']
-            email        = data['email']
-            phone_number = data['phone_number']
-            introduction = data['introduction']
-            carrer       = data['carrer']
+            nickname      = data['nickname']
+            email         = data['email']
+            phone_number  = data['phone_number']
+            profile_image = data['profile_image']
+            introduction  = data['introduction']
+            carrer        = data['carrer']
+            
+            Creator.objects.update_or_create(
+                user_id  = user_id,
+                defaults = {
+                    'nickname'     : nickname,
+                    'email'        : email,
+                    'phone_number' : phone_number,
+                    'profile_image': profile_image,
+                    'introduction' : introduction,
+                    'carrer'       : carrer
+                }
+            )
 
             with transaction.atomic():
                 Creator.objects.update_or_create(
