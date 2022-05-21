@@ -17,7 +17,7 @@ class User(models.Model):
         db_table = 'users'
 
 class Creator(models.Model):
-    user          = models.ForeignKey('users.User', unique=True, on_delete=models.CASCADE)
+    user          = models.ForeignKey('users.User', on_delete=models.CASCADE)
     nickname      = models.CharField(max_length=30)
     email         = models.CharField(max_length=200)
     phone_number  = models.CharField(max_length=50, null=True)
